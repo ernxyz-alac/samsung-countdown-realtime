@@ -40,7 +40,6 @@
             --vs-size: calc(var(--screen-height) * 0.06);
         }
 
-        /* MAIN CONTAINER: holds either image background or video element */
         #main-container {
             width: var(--screen-width);
             height: var(--screen-height);
@@ -48,7 +47,6 @@
             overflow: hidden;
         }
         
-        /* BACKGROUND MEDIA (image or video) */
         .bg-media {
             position: absolute;
             top: 0;
@@ -59,14 +57,13 @@
             z-index: 0;
         }
         
-        /* CONTENT STACK - sits above background */
         .header-stack {
             position: absolute;
             z-index: 2;
             width: auto;
         }
 
-        /* ===================== REGULAR LAYOUT (static image background) ===================== */
+        /* ===================== REGULAR LAYOUT ===================== */
         .regular-layout .bg-media {
             object-fit: cover;
         }
@@ -177,7 +174,7 @@
             padding-left: 5px;
         }
         
-        /* ===================== ICONIC LAYOUT (video background, centered content) ===================== */
+        /* ===================== ICONIC LAYOUT ===================== */
         .iconic-layout .header-stack {
             top: 40%;
             left: 45%;
@@ -199,7 +196,6 @@
             font-size: calc(var(--screen-height) * 0.055);
             font-weight: bold;
             color: black;
-            border-radius: 50px;
             letter-spacing: 1px;
         }
         
@@ -279,7 +275,6 @@
             padding-left: 8px;
         }
         
-        /* Shared flag styles - maintain aspect ratio */
         .flag {
             display: block;
             width: auto;
@@ -300,7 +295,6 @@
 </head>
 <body>
 <div id="main-container">
-    <!-- dynamic background will be injected here: either <img> for regular or <video> for iconic -->
     <div id="bg-media-container"></div>
     
     <div class="header-stack">
@@ -310,7 +304,6 @@
         
         <div class="teams-stack">
             <div class="teams-container">
-                <!-- México -->
                 <div class="team-container">
                     <span class="team-name">México</span>
                     <img class="flag" src="./media/flags/m.png" alt="Bandera México" onerror="this.src='https://placehold.co/100x60?text=MX'">
@@ -318,7 +311,6 @@
                 <div class="vs-container">
                     <span>VS</span>
                 </div>
-                <!-- Sudáfrica -->
                 <div class="team-container">
                     <span class="team-name">Sudáfrica</span>
                     <img class="flag" src="./media/flags/sa.png" alt="Bandera Sudáfrica" onerror="this.src='https://placehold.co/100x60?text=SA'">
@@ -340,21 +332,27 @@
 
 <script>
     (function() {
-        // ----- Use actual viewport dimensions (no URL params) -----
-        const targetWidth = window.innerWidth;
-        const targetHeight = window.innerHeight;
+        // Use actual SCREEN resolution for layout detection (billboard hardware)
+        const screenWidth = window.screen.width;
+        const screenHeight = window.screen.height;
+        
+        // Use viewport size for CSS variables (so content fits the iframe)
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
         
         const root = document.documentElement;
-        root.style.setProperty('--screen-width', targetWidth + 'px');
-        root.style.setProperty('--screen-height', targetHeight + 'px');
+        root.style.setProperty('--screen-width', viewportWidth + 'px');
+        root.style.setProperty('--screen-height', viewportHeight + 'px');
         
-        // Determine iconic layout: 
-        // - exact 1920x1079 (new iconic resolution)
-        // - ultra-wide (ratio >= 3.2 or width>=2000 & height<=700) for legacy
-        const ratio = targetWidth / targetHeight;
+        // Determine iconic layout based on actual screen resolution
+        const ratio = screenWidth / screenHeight;
         let isIconic = false;
         
-        if ((targetWidth === 1920 && targetHeight === 1079) || ratio >= 3.2 || (targetWidth >= 2000 && targetHeight <= 700)) {
+        // Iconic detection: exact 1920x1079 OR 2320x600 OR ultra-wide
+        if ((screenWidth === 1920 && screenHeight === 1079) || 
+            (screenWidth === 2320 && screenHeight === 600) || 
+            ratio >= 3.2 || 
+            (screenWidth >= 2000 && screenHeight <= 700)) {
             isIconic = true;
         }
         
@@ -372,7 +370,6 @@
         bgContainer.innerHTML = '';
         
         if (isIconic) {
-            // Iconic: video background
             const video = document.createElement('video');
             video.className = 'bg-media';
             video.autoplay = true;
@@ -390,22 +387,20 @@
             video.appendChild(source);
             
             video.onerror = function() {
-                console.warn('Iconic video failed to load, using fallback color');
+                console.warn('Iconic video failed to load, using fallback');
                 video.style.display = 'none';
                 const fallbackDiv = document.createElement('div');
                 fallbackDiv.className = 'bg-media';
                 fallbackDiv.style.backgroundColor = '#1a0a2e';
-                fallbackDiv.style.backgroundImage = 'linear-gradient(145deg, #2b0b3a, #0f021f)';
                 bgContainer.appendChild(fallbackDiv);
             };
             
             video.addEventListener('canplaythrough', () => {
                 video.play().catch(e => console.log('Video autoplay prevented:', e));
             });
-            video.play().catch(e => console.log('Autoplay blocked, will play on interaction'));
+            video.play().catch(e => console.log('Autoplay blocked'));
             bgContainer.appendChild(video);
         } else {
-            // Regular: static image
             const img = document.createElement('img');
             img.className = 'bg-media';
             img.src = './media/regular/display.png';
@@ -500,7 +495,7 @@
         
         // Small screen adjustments
         const adjustForSmall = () => {
-            if (!isIconic && targetWidth < 500) {
+            if (!isIconic && viewportWidth < 500) {
                 const teamNames = document.querySelectorAll('.team-name');
                 teamNames.forEach(tn => tn.style.fontSize = '14px');
                 const flags = document.querySelectorAll('.flag');
@@ -513,7 +508,7 @@
         };
         adjustForSmall();
         
-        // Ensure background always fills
+        // Ensure background fills
         const resizeObserver = new ResizeObserver(() => {
             const bgMedia = document.querySelector('.bg-media');
             if (bgMedia) {
