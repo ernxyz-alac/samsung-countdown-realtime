@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Samsung countdown realtime</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Samsung Countdown | México vs Sudáfrica 2026</title>
     <style>
         @font-face {
             font-family: "Avant";
@@ -15,172 +14,597 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
         }
 
         html, body {
             height: 100%;
+            width: 100%;
         }
 
         body {
             font-family: "Avant", sans-serif;
             overflow: hidden;
+            background-color: black;
         }
 
         :root {
-            --accent-color: #7E01A7;
-
-            --iconic-bg: url('./media/landscape.jpg');
-            --regular-bg: url('./media/square.jpg');
-
             --screen-width: 100vw;
             --screen-height: 100vh;
-
-            /* BASE (landscape default) */
-            --countdown-prefix-size: calc(var(--screen-height) * 0.04);
-            --countdown-text-1-size: calc(var(--screen-height) * 0.18);
-            --countdown-text-2-size: calc(var(--screen-height) * 0.10);
+            
+            --countdown-prefix-size: calc(var(--screen-height) * 0.07);
+            --countdown-text-1-size: calc(var(--screen-height) * 0.32);
+            --countdown-text-2-size: calc(var(--screen-height) * 0.18);
+            
+            --team-name-size: calc(var(--screen-height) * 0.055);
+            --vs-size: calc(var(--screen-height) * 0.06);
         }
 
+        /* MAIN CONTAINER: holds either image background or video element */
         #main-container {
             width: var(--screen-width);
             height: var(--screen-height);
             position: relative;
-
-            background-image: var(--iconic-bg);
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            overflow: hidden;
         }
-
-        #countdown-container {
+        
+        /* BACKGROUND MEDIA (image or video) */
+        .bg-media {
             position: absolute;
-
-            top: calc(var(--screen-height) * 0.35);
-            left: calc(var(--screen-width) * 0.70);
-            transform: translateX(-50%);
-
-            display: flex;
-            gap: calc(var(--screen-width) * 0.02);
-
-            color: white;
-            text-align: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+        
+        /* CONTENT STACK - sits above background */
+        .header-stack {
+            position: absolute;
+            z-index: 2;
+            width: auto;
         }
 
-        #countdown-item {
+        /* ===================== REGULAR LAYOUT (static image background) ===================== */
+        .regular-layout .bg-media {
+            object-fit: cover;
+        }
+        
+        .regular-layout .header-stack {
+            right: 5%;
+            top: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            width: auto;
+            max-width: 55%;
+        }
+        
+        .regular-layout .target-date-wrapper {
+            text-align: center;
+            margin-bottom: 1rem;
+            width: 80%;
+        }
+        
+        .regular-layout #target-date-text {
+            font-size: calc(var(--screen-height) * 0.07);
+            font-weight: bold;
+            color: black;
+            display: inline-block;
+        }
+        
+        .regular-layout .teams-stack {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        
+        .regular-layout .teams-container {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .regular-layout .team-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .regular-layout .team-name {
+            font-size: var(--team-name-size);
+            font-weight: bold;
+            color: black;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+        }
+        
+        .regular-layout .flag {
+            width: calc(var(--screen-width) * 0.16);
+            height: auto;
+            object-fit: contain;
+        }
+        
+        .regular-layout .vs-container {
+            font-size: var(--vs-size);
+            font-weight: bold;
+            color: black;
+            text-shadow: 1px 1px 0 #000;
+            margin: 0 0.2rem;
+        }
+        
+        .regular-layout .countdown-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        
+        .regular-layout #countdown-container {
+            border-radius: 60px;
+            display: inline-flex;
+        }
+        
+        .regular-layout #countdown-item {
             display: flex;
             flex-direction: row;
-            align-items: flex-start;
-            gap: 0.5rem;
+            align-items: baseline;
+            gap: 0.6rem;
+            white-space: nowrap;
+        }
+        
+        .regular-layout #countdown-prefix {
+            font-size: var(--countdown-prefix-size);
+            font-weight: bold;
+            color: white;
+        }
+        
+        .regular-layout #countdown-text-1 {
+            font-size: var(--countdown-text-1-size);
+            font-weight: bold;
+            color: white;
+            line-height: 1;
+        }
+        
+        .regular-layout #countdown-text-2 {
+            font-size: var(--countdown-text-2-size);
+            font-weight: bold;
+            color: white;
+            padding-left: 5px;
+        }
+        
+        /* ===================== ICONIC LAYOUT (video background, centered content) ===================== */
+        .iconic-layout .header-stack {
+            top: 40%;
+            left: 45%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .iconic-layout .target-date-wrapper {
+            margin-bottom: 0;
+        }
+        
+        .iconic-layout #target-date-text {
+            font-size: calc(var(--screen-height) * 0.055);
+            font-weight: bold;
+            color: black;
+            border-radius: 50px;
+            letter-spacing: 1px;
+        }
+        
+        .iconic-layout .teams-stack {
+            margin: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .iconic-layout .teams-container {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .iconic-layout .team-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        
+        .iconic-layout .team-name {
+            font-size: calc(var(--screen-height) * 0.07);
+            font-weight: bold;
+            color: black;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+        }
+        
+        .iconic-layout .flag {
+            width: calc(var(--screen-width) * 0.16);
+            height: auto;
+            object-fit: contain;
+        }
+        
+        .iconic-layout .vs-container {
+            font-size: calc(var(--screen-height) * 0.09);
+            font-weight: bold;
+            color: black;
+            text-shadow: 2px 2px 0 #3a1f00;
+            margin: 0 0.3rem;
+        }
+        
+        .iconic-layout .countdown-wrapper {
+            margin-top: 1.5rem;
+        }
+        
+        .iconic-layout #countdown-container {
+            display: inline-block;
+        }
+        
+        .iconic-layout #countdown-item {
+            display: flex;
+            flex-direction: row;
+            align-items: baseline;
+            gap: 0.8rem;
+        }
+        
+        .iconic-layout #countdown-prefix {
+            font-size: calc(var(--screen-height) * 0.07);
+            font-weight: bold;
+            color: white;
+        }
+        
+        .iconic-layout #countdown-text-1 {
+            font-size: calc(var(--screen-height) * 0.22);
+            font-weight: bold;
+            color: white;
+            line-height: 1;
+        }
+        
+        .iconic-layout #countdown-text-2 {
+            font-size: calc(var(--screen-height) * 0.1);
+            font-weight: bold;
+            color: white;
+            padding-left: 8px;
+        }
+        
+        /* Shared flag styles - maintain aspect ratio */
+        .flag {
+            display: block;
+            width: auto;
+            max-width: 260px;
+            height: auto;
+            max-height: 180px;
+            object-fit: contain;
+        }
+        
+        .team-name, .vs-container span {
             white-space: nowrap;
         }
 
-        #countdown-prefix {
-            font-size: var(--countdown-prefix-size);
-            font-weight: bold;
-            padding-top: 30px;
-
-            color: white;
+        .target-date-text, .team-name, .vs-container {
+            color: black;
         }
-
-        #countdown-text-1 {
-            font-size: var(--countdown-text-1-size);
-            font-weight: bold;
-        }
-
-        #countdown-text-2 {
-            font-size: var(--countdown-text-2-size);
-            padding-left: 5px;
-            align-self: center;
-            padding-top: 20px;
-        }
-
-        /* ===== SQUARE (unchanged) ===== */
-        .regular-layout {
-            --countdown-prefix-size: calc(var(--screen-height) * 0.06);
-            --countdown-text-1-size: calc(var(--screen-height) * 0.25);
-            --countdown-text-2-size: calc(var(--screen-height) * 0.14);
-        }
-
-        .regular-layout #main-container {
-            background-image: var(--regular-bg);
-        }
-
-        .regular-layout #countdown-container {
-            top: calc(var(--screen-height) * 0.25);
-            left: calc(var(--screen-width) * 0.5);
-        }
-
-        .regular-layout #countdown-item {
-            align-items: center;
-        }
-
-        .regular-layout #countdown-prefix {
-            padding: 0;
-        }
-
-        /* ===== LANDSCAPE (+50% SIZE BOOST) ===== */
-        .iconic-layout {
-            --countdown-prefix-size: calc(var(--screen-height) * 0.066);   /* 0.04 → 0.06 */
-            --countdown-text-1-size: calc(var(--screen-height) * 0.297);  /* 0.18 → 0.27 */
-            --countdown-text-2-size: calc(var(--screen-height) * 0.165);  /* 0.10 → 0.15 */
-        }
-
-        .iconic-layout #main-container {
-            background-image: var(--iconic-bg);
-        }
-
     </style>
 </head>
-
 <body>
-    <div id="main-container">
-        <div id="countdown-container">
-            <div id="countdown-item">
-                <span id="countdown-prefix"></span>
-                <span id="countdown-text-1"></span>
-                <span id="countdown-text-2"></span>
+<div id="main-container">
+    <!-- dynamic background will be injected here: either <img> for regular or <video> for iconic -->
+    <div id="bg-media-container"></div>
+    
+    <div class="header-stack">
+        <div class="target-date-wrapper">
+            <span id="target-date-text"></span>
+        </div>
+        
+        <div class="teams-stack">
+            <div class="teams-container">
+                <!-- México -->
+                <div class="team-container">
+                    <span class="team-name">México</span>
+                    <img class="flag" src="./media/flags/m.png" alt="Bandera México" onerror="this.src='https://placehold.co/100x60?text=MX'">
+                </div>
+                <div class="vs-container">
+                    <span>VS</span>
+                </div>
+                <!-- Sudáfrica -->
+                <div class="team-container">
+                    <span class="team-name">Sudáfrica</span>
+                    <img class="flag" src="./media/flags/sa.png" alt="Bandera Sudáfrica" onerror="this.src='https://placehold.co/100x60?text=SA'">
+                </div>
+            </div>
+        </div>
+        
+        <div class="countdown-wrapper">
+            <div id="countdown-container">
+                <div id="countdown-item">
+                    <span id="countdown-prefix"></span>
+                    <span id="countdown-text-1"></span>
+                    <span id="countdown-text-2"></span>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetWidth = parseInt(urlParams.get('width')) || window.innerWidth;
-    const targetHeight = parseInt(urlParams.get('height')) || window.innerHeight;
-
-    const root = document.documentElement;
-
-    root.style.setProperty('--screen-width', `${targetWidth}px`);
-    root.style.setProperty('--screen-height', `${targetHeight}px`);
-
-    const isSquare = targetWidth >= 510 && targetWidth <= 767;
-
-    if (isSquare) {
-        document.body.classList.add('regular-layout');
-    } else {
-        document.body.classList.add('iconic-layout');
-    }
-
-    const targetDate = new Date('2026-03-26T00:00:00-04:00');
-    const now = new Date();
-
-    const remainingDays = Math.ceil(
-        (targetDate - now) / (1000 * 60 * 60 * 24)
-    );
-
-    document.getElementById('countdown-prefix').innerText =
-        remainingDays > 1 ? 'Faltan' : 'Falta';
-
-    document.getElementById('countdown-text-1').innerText =
-        remainingDays.toString().padStart(2, '0');
-
-    document.getElementById('countdown-text-2').innerText =
-        remainingDays > 1 ? 'días' : 'día';
-
-});
+    (function() {
+        // ----- get dimensions from URL params or actual viewport -----
+        const urlParams = new URLSearchParams(window.location.search);
+        let targetWidth = parseInt(urlParams.get('width'));
+        let targetHeight = parseInt(urlParams.get('height'));
+        
+        if (isNaN(targetWidth) || isNaN(targetHeight)) {
+            targetWidth = window.innerWidth;
+            targetHeight = window.innerHeight;
+        }
+        
+        const root = document.documentElement;
+        root.style.setProperty('--screen-width', targetWidth + 'px');
+        root.style.setProperty('--screen-height', targetHeight + 'px');
+        
+        // Determine iconic layout: specifically for 2320x600 or very wide aspect ratio > 3.0 and height <= 700
+        const ratio = targetWidth / targetHeight;
+        let isIconic = false;
+        
+        // iconic size is 2320x600 as per spec, also detect ultra-wide banners
+        if ((targetWidth === 2320 && targetHeight === 600) || ratio >= 3.2 || (targetWidth >= 2000 && targetHeight <= 700)) {
+            isIconic = true;
+        } else {
+            isIconic = false;
+        }
+        
+        // Apply layout class to body
+        if (isIconic) {
+            document.body.classList.add('iconic-layout');
+            document.body.classList.remove('regular-layout');
+        } else {
+            document.body.classList.add('regular-layout');
+            document.body.classList.remove('iconic-layout');
+        }
+        
+        // --- BACKGROUND HANDLING ---
+        // For regular layout: use static image (./media/regular/display.png)
+        // For iconic layout: use video (./media/iconic/display.mp4) and force autoplay & loop
+        const bgContainer = document.getElementById('bg-media-container');
+        bgContainer.innerHTML = ''; // clear any previous
+        
+        if (isIconic) {
+            // Create video element for iconic background
+            const video = document.createElement('video');
+            video.className = 'bg-media';
+            video.autoplay = true;
+            video.muted = true;      // required for autoplay on most browsers
+            video.loop = true;
+            video.playsInline = true;
+            video.setAttribute('playsinline', '');
+            video.style.objectFit = 'cover';
+            video.style.width = '100%';
+            video.style.height = '100%';
+            
+            // Source for iconic video background
+            const source = document.createElement('source');
+            source.src = './media/iconic/display.mp4';
+            source.type = 'video/mp4';
+            video.appendChild(source);
+            
+            // Fallback in case video fails to load: add a dark background but still try to play
+            video.onerror = function() {
+                console.warn('Iconic video failed to load, using fallback color');
+                video.style.display = 'none';
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.className = 'bg-media';
+                fallbackDiv.style.backgroundColor = '#1a0a2e';
+                fallbackDiv.style.backgroundImage = 'linear-gradient(145deg, #2b0b3a, #0f021f)';
+                bgContainer.appendChild(fallbackDiv);
+            };
+            
+            // Ensure video plays when ready
+            video.addEventListener('canplaythrough', () => {
+                video.play().catch(e => console.log('Video autoplay prevented:', e));
+            });
+            
+            // try to play immediately
+            video.play().catch(e => console.log('Autoplay blocked, but will play on interaction or muted works'));
+            
+            bgContainer.appendChild(video);
+        } else {
+            // Regular layout: static image background
+            const img = document.createElement('img');
+            img.className = 'bg-media';
+            img.src = './media/regular/display.png';
+            img.alt = 'background';
+            img.style.objectFit = 'cover';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.onerror = () => {
+                // fallback color if image missing
+                img.style.display = 'none';
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.className = 'bg-media';
+                fallbackDiv.style.backgroundColor = '#0a1a2f';
+                bgContainer.appendChild(fallbackDiv);
+            };
+            bgContainer.appendChild(img);
+        }
+        
+        // ---- COUNTDOWN LOGIC (static init only, as requested) ----
+        // target date: June 11 2026 14:00 GMT-5 (Mexico City time)
+        const targetDate = new Date('2026-06-11T14:00:00-05:00');
+        
+        const targetDateEl = document.getElementById('target-date-text');
+        const formattedDate = targetDate.toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        targetDateEl.innerText = formattedDate;
+        
+        const now = new Date();
+        let diffMs = targetDate - now;
+        let remainingDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        if (remainingDays < 0) remainingDays = 0;
+        
+        const prefixSpan = document.getElementById('countdown-prefix');
+        const daysNumSpan = document.getElementById('countdown-text-1');
+        const unitSpan = document.getElementById('countdown-text-2');
+        
+        prefixSpan.innerText = remainingDays === 1 ? 'Falta' : 'Faltan';
+        daysNumSpan.innerText = remainingDays.toString().padStart(2, '0');
+        unitSpan.innerText = remainingDays === 1 ? 'día' : 'días';
+        
+        // edge case: if today is exactly the day
+        if (remainingDays === 0) {
+            prefixSpan.innerText = 'Hoy';
+            daysNumSpan.innerText = '00';
+            unitSpan.innerText = '';
+        }
+        
+        // Fix flag aspect ratio: ensure that all flags maintain original proportions and are not stretched
+        // We already have .flag CSS with object-fit contain and auto width/height, but to be extra safe:
+        const allFlags = document.querySelectorAll('.flag');
+        allFlags.forEach(flag => {
+            flag.style.width = '';
+            flag.style.height = '';
+            // Force reflow to avoid any hidden distortion
+            if (flag.naturalWidth && flag.naturalHeight) {
+                // ensure max dimensions keep ratio
+                const parent = flag.parentElement;
+                if (parent) {
+                    // nothing else needed, CSS handles
+                }
+            }
+            // add event to ensure if image loads late, we preserve ratio
+            flag.addEventListener('load', function() {
+                this.style.width = '';
+                this.style.height = '';
+            });
+        });
+        
+        // Additional specific adjustment for iconic layout flags: sometimes max-width might conflict, set fluid
+        // if (isIconic) {
+        //     // Iconic layout flags can be slightly bigger but still contain ratio
+        //     const styleIconicFlags = document.createElement('style');
+        //     styleIconicFlags.textContent = `
+        //         .iconic-layout .flag {
+        //             max-width: calc(var(--screen-height) * 0.18);
+        //             max-height: calc(var(--screen-height) * 0.12);
+        //             width: auto;
+        //             height: auto;
+        //         }
+        //     `;
+        //     document.head.appendChild(styleIconicFlags);
+        // } else {
+        //     const styleRegularFlags = document.createElement('style');
+        //     styleRegularFlags.textContent = `
+        //         .regular-layout .flag {
+        //             max-width: calc(var(--screen-height) * 0.14);
+        //             max-height: calc(var(--screen-height) * 0.1);
+        //             width: auto;
+        //             height: auto;
+        //         }
+        //     `;
+        //     document.head.appendChild(styleRegularFlags);
+        // }
+        
+        // Make sure the video in iconic layout plays no matter what.
+        // Additional robust video playing logic: if video element exists and is paused due to browser policies,
+        // we attempt to play it again on any user interaction? but requirement says "make the video play for iconic, no matter how"
+        // Since we used muted + autoplay, most modern browsers will autoplay muted videos. But to be absolutely sure,
+        // we also add a small script to force play after any user tap/click anywhere on screen for iconic.
+        if (isIconic) {
+            const videoElement = document.querySelector('#bg-media-container video');
+            if (videoElement) {
+                // attempt play on load and also on visibility changes
+                const forcePlay = () => {
+                    if (videoElement.paused) {
+                        videoElement.play().catch(e => console.log('playback retry:', e));
+                    }
+                };
+                videoElement.addEventListener('loadeddata', forcePlay);
+                // also attempt after a tiny delay
+                setTimeout(forcePlay, 500);
+                // if video still not playing, try on any click/touch on the page (user gesture)
+                const playOnInteraction = () => {
+                    if (videoElement && videoElement.paused) {
+                        videoElement.play().then(() => {
+                            // once playing, remove listeners to avoid overhead
+                            document.removeEventListener('click', playOnInteraction);
+                            document.removeEventListener('touchstart', playOnInteraction);
+                        }).catch(e => {});
+                    } else {
+                        document.removeEventListener('click', playOnInteraction);
+                        document.removeEventListener('touchstart', playOnInteraction);
+                    }
+                };
+                document.addEventListener('click', playOnInteraction);
+                document.addEventListener('touchstart', playOnInteraction);
+                // additionally, if video is stuck because of invisible policy, we use a small hack: reload source? no needed.
+                // Also ensure video is not paused due to tab inactive? but not critical.
+            }
+        }
+        
+        // Additional cleanup: Remove any blurred background styles from previous versions: we already set backdrop-filter: none explicitly
+        // Also ensure that no extra filter or blur is applied anywhere.
+        const allBlurElements = document.querySelectorAll('.teams-container, #countdown-container, .target-date-wrapper span');
+        allBlurElements.forEach(el => {
+            el.style.backdropFilter = 'none';
+            el.style.filter = 'none';
+        });
+        
+        // Ensure that for regular layout the content is stacked on the right side without any blur, but still visible.
+        // Also fix any overflow of vs text etc.
+        const vsSpan = document.querySelector('.vs-container span');
+        if (vsSpan) vsSpan.style.whiteSpace = 'nowrap';
+        
+        // Fix for target date text, if on small regular screens adjust padding
+        const adjustForSmall = () => {
+            if (!isIconic && targetWidth < 500) {
+                const teamNames = document.querySelectorAll('.team-name');
+                teamNames.forEach(tn => tn.style.fontSize = '14px');
+                const flags = document.querySelectorAll('.flag');
+                flags.forEach(f => f.style.maxWidth = '40px');
+                const vsCont = document.querySelector('.vs-container');
+                if (vsCont) vsCont.style.fontSize = '18px';
+                const countdownContainer = document.getElementById('countdown-container');
+                if (countdownContainer) countdownContainer.style.padding = '0.3rem 1rem';
+            }
+        };
+        adjustForSmall();
+        
+        // ensure that background video always fills entire container and doesn't overflow
+        const resizeObserver = new ResizeObserver(() => {
+            const bgMedia = document.querySelector('.bg-media');
+            if (bgMedia) {
+                bgMedia.style.width = '100%';
+                bgMedia.style.height = '100%';
+                bgMedia.style.objectFit = 'cover';
+            }
+            if (isIconic) {
+                const videoBg = document.querySelector('#bg-media-container video');
+                if (videoBg && videoBg.paused && !videoBg.ended) {
+                    videoBg.play().catch(e => {});
+                }
+            }
+        });
+        resizeObserver.observe(document.body);
+        
+        // final fail-safe: for iconic layout, if video fails to load at all, we create a canvas that simulates background but no blur
+        // but we also keep any fallback as we already have onerror on video.
+        // Also ensure that flags relation never loses aspect ratio: we enforce object-fit contain and remove fixed width/height attributes.
+        // The flag images will keep original proportion due to CSS.
+    })();
 </script>
-
 </body>
 </html>
