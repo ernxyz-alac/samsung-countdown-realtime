@@ -63,7 +63,7 @@
             width: auto;
         }
 
-        /* ===================== REGULAR LAYOUT ===================== */
+        /* ===================== REGULAR LAYOUT (width ≤ 768) ===================== */
         .regular-layout .bg-media {
             object-fit: cover;
         }
@@ -174,7 +174,7 @@
             padding-left: 5px;
         }
         
-        /* ===================== ICONIC LAYOUT ===================== */
+        /* ===================== ICONIC LAYOUT (width > 768) ===================== */
         .iconic-layout .header-stack {
             top: 40%;
             left: 45%;
@@ -332,11 +332,7 @@
 
 <script>
     (function() {
-        // Use actual SCREEN resolution for layout detection (billboard hardware)
-        const screenWidth = window.screen.width;
-        const screenHeight = window.screen.height;
-        
-        // Use viewport size for CSS variables (so content fits the iframe)
+        // Simple rule: if viewport width > 768 pixels, use iconic layout
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         
@@ -344,19 +340,8 @@
         root.style.setProperty('--screen-width', viewportWidth + 'px');
         root.style.setProperty('--screen-height', viewportHeight + 'px');
         
-        // Determine iconic layout based on actual screen resolution
-        const ratio = screenWidth / screenHeight;
-        let isIconic = false;
+        const isIconic = viewportWidth > 768;
         
-        // Iconic detection: exact 1920x1079 OR 2320x600 OR ultra-wide
-        if ((screenWidth === 1920 && screenHeight === 1079) || 
-            (screenWidth === 2320 && screenHeight === 600) || 
-            ratio >= 3.2 || 
-            (screenWidth >= 2000 && screenHeight <= 700)) {
-            isIconic = true;
-        }
-        
-        // Apply layout class to body
         if (isIconic) {
             document.body.classList.add('iconic-layout');
             document.body.classList.remove('regular-layout');
