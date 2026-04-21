@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samsung countdown realtime</title>
+    <style>
+        @font-face {
+            font-family: "Avant";
+            src: url('./fonts/avant.otf');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Avant", sans-serif;
+            overflow: hidden;
+        }
+
+        :root {
+            --accent-color: #7E01A7;
+
+            --iconic-bg: url('./media/landscape.jpg');
+            --regular-bg: url('./media/square.jpg');
+
+            --screen-width: 100vw;
+            --screen-height: 100vh;
+
+            /* BASE (landscape default) */
+            --countdown-prefix-size: calc(var(--screen-height) * 0.04);
+            --countdown-text-1-size: calc(var(--screen-height) * 0.18);
+            --countdown-text-2-size: calc(var(--screen-height) * 0.10);
+        }
+
+        #main-container {
+            width: var(--screen-width);
+            height: var(--screen-height);
+            position: relative;
+
+            background-image: var(--iconic-bg);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #countdown-container {
+            position: absolute;
+
+            top: calc(var(--screen-height) * 0.35);
+            left: calc(var(--screen-width) * 0.70);
+            transform: translateX(-50%);
+
+            display: flex;
+            gap: calc(var(--screen-width) * 0.02);
+
+            color: white;
+            text-align: center;
+        }
+
+        #countdown-item {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        #countdown-prefix {
+            font-size: var(--countdown-prefix-size);
+            font-weight: bold;
+            padding-top: 30px;
+
+            color: white;
+        }
+
+        #countdown-text-1 {
+            font-size: var(--countdown-text-1-size);
+            font-weight: bold;
+        }
+
+        #countdown-text-2 {
+            font-size: var(--countdown-text-2-size);
+            padding-left: 5px;
+            align-self: center;
+            padding-top: 20px;
+        }
+
+        /* ===== SQUARE (unchanged) ===== */
+        .regular-layout {
+            --countdown-prefix-size: calc(var(--screen-height) * 0.06);
+            --countdown-text-1-size: calc(var(--screen-height) * 0.25);
+            --countdown-text-2-size: calc(var(--screen-height) * 0.14);
+        }
+
+        .regular-layout #main-container {
+            background-image: var(--regular-bg);
+        }
+
+        .regular-layout #countdown-container {
+            top: calc(var(--screen-height) * 0.25);
+            left: calc(var(--screen-width) * 0.5);
+        }
+
+        .regular-layout #countdown-item {
+            align-items: center;
+        }
+
+        .regular-layout #countdown-prefix {
+            padding: 0;
+        }
+
+        /* ===== LANDSCAPE (+50% SIZE BOOST) ===== */
+        .iconic-layout {
+            --countdown-prefix-size: calc(var(--screen-height) * 0.066);   /* 0.04 → 0.06 */
+            --countdown-text-1-size: calc(var(--screen-height) * 0.297);  /* 0.18 → 0.27 */
+            --countdown-text-2-size: calc(var(--screen-height) * 0.165);  /* 0.10 → 0.15 */
+        }
+
+        .iconic-layout #main-container {
+            background-image: var(--iconic-bg);
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="main-container">
+        <div id="countdown-container">
+            <div id="countdown-item">
+                <span id="countdown-prefix"></span>
+                <span id="countdown-text-1"></span>
+                <span id="countdown-text-2"></span>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetWidth = parseInt(urlParams.get('width')) || window.innerWidth;
+    const targetHeight = parseInt(urlParams.get('height')) || window.innerHeight;
+
+    const root = document.documentElement;
+
+    root.style.setProperty('--screen-width', `${targetWidth}px`);
+    root.style.setProperty('--screen-height', `${targetHeight}px`);
+
+    const isSquare = targetWidth >= 510 && targetWidth <= 767;
+
+    if (isSquare) {
+        document.body.classList.add('regular-layout');
+    } else {
+        document.body.classList.add('iconic-layout');
+    }
+
+    const targetDate = new Date('2026-03-26T00:00:00-04:00');
+    const now = new Date();
+
+    const remainingDays = Math.ceil(
+        (targetDate - now) / (1000 * 60 * 60 * 24)
+    );
+
+    document.getElementById('countdown-prefix').innerText =
+        remainingDays > 1 ? 'Faltan' : 'Falta';
+
+    document.getElementById('countdown-text-1').innerText =
+        remainingDays.toString().padStart(2, '0');
+
+    document.getElementById('countdown-text-2').innerText =
+        remainingDays > 1 ? 'días' : 'día';
+
+});
+</script>
+
+</body>
+</html>
