@@ -340,15 +340,9 @@
 
 <script>
     (function() {
-        // ----- get dimensions from URL params or actual viewport -----
-        const urlParams = new URLSearchParams(window.location.search);
-        let targetWidth = parseInt(urlParams.get('width'));
-        let targetHeight = parseInt(urlParams.get('height'));
-        
-        if (isNaN(targetWidth) || isNaN(targetHeight)) {
-            targetWidth = window.innerWidth;
-            targetHeight = window.innerHeight;
-        }
+        // ----- FIX: Always use actual iframe viewport dimensions (no URL params) -----
+        const targetWidth = window.innerWidth;
+        const targetHeight = window.innerHeight;
         
         const root = document.documentElement;
         root.style.setProperty('--screen-width', targetWidth + 'px');
@@ -375,8 +369,6 @@
         }
         
         // --- BACKGROUND HANDLING ---
-        // For regular layout: use static image (./media/regular/display.png)
-        // For iconic layout: use video (./media/iconic/display.mp4) and force autoplay & loop
         const bgContainer = document.getElementById('bg-media-container');
         bgContainer.innerHTML = ''; // clear any previous
         
@@ -385,7 +377,7 @@
             const video = document.createElement('video');
             video.className = 'bg-media';
             video.autoplay = true;
-            video.muted = true;      // required for autoplay on most browsers
+            video.muted = true;
             video.loop = true;
             video.playsInline = true;
             video.setAttribute('playsinline', '');
@@ -393,13 +385,11 @@
             video.style.width = '100%';
             video.style.height = '100%';
             
-            // Source for iconic video background
             const source = document.createElement('source');
             source.src = './media/iconic/display.mp4';
             source.type = 'video/mp4';
             video.appendChild(source);
             
-            // Fallback in case video fails to load: add a dark background but still try to play
             video.onerror = function() {
                 console.warn('Iconic video failed to load, using fallback color');
                 video.style.display = 'none';
@@ -410,14 +400,10 @@
                 bgContainer.appendChild(fallbackDiv);
             };
             
-            // Ensure video plays when ready
             video.addEventListener('canplaythrough', () => {
                 video.play().catch(e => console.log('Video autoplay prevented:', e));
             });
-            
-            // try to play immediately
             video.play().catch(e => console.log('Autoplay blocked, but will play on interaction or muted works'));
-            
             bgContainer.appendChild(video);
         } else {
             // Regular layout: static image background
@@ -429,7 +415,6 @@
             img.style.width = '100%';
             img.style.height = '100%';
             img.onerror = () => {
-                // fallback color if image missing
                 img.style.display = 'none';
                 const fallbackDiv = document.createElement('div');
                 fallbackDiv.className = 'bg-media';
@@ -439,8 +424,7 @@
             bgContainer.appendChild(img);
         }
         
-        // ---- COUNTDOWN LOGIC (static init only, as requested) ----
-        // target date: June 11 2026 14:00 GMT-5 (Mexico City time)
+        // ---- COUNTDOWN LOGIC (static init only) ----
         const targetDate = new Date('2026-06-11T14:00:00-05:00');
         
         const targetDateEl = document.getElementById('target-date-text');
@@ -464,82 +448,37 @@
         daysNumSpan.innerText = remainingDays.toString().padStart(2, '0');
         unitSpan.innerText = remainingDays === 1 ? 'día' : 'días';
         
-        // edge case: if today is exactly the day
         if (remainingDays === 0) {
             prefixSpan.innerText = 'Hoy';
             daysNumSpan.innerText = '00';
             unitSpan.innerText = '';
         }
         
-        // Fix flag aspect ratio: ensure that all flags maintain original proportions and are not stretched
-        // We already have .flag CSS with object-fit contain and auto width/height, but to be extra safe:
+        // Fix flag aspect ratio
         const allFlags = document.querySelectorAll('.flag');
         allFlags.forEach(flag => {
             flag.style.width = '';
             flag.style.height = '';
-            // Force reflow to avoid any hidden distortion
-            if (flag.naturalWidth && flag.naturalHeight) {
-                // ensure max dimensions keep ratio
-                const parent = flag.parentElement;
-                if (parent) {
-                    // nothing else needed, CSS handles
-                }
-            }
-            // add event to ensure if image loads late, we preserve ratio
             flag.addEventListener('load', function() {
                 this.style.width = '';
                 this.style.height = '';
             });
         });
         
-        // Additional specific adjustment for iconic layout flags: sometimes max-width might conflict, set fluid
-        // if (isIconic) {
-        //     // Iconic layout flags can be slightly bigger but still contain ratio
-        //     const styleIconicFlags = document.createElement('style');
-        //     styleIconicFlags.textContent = `
-        //         .iconic-layout .flag {
-        //             max-width: calc(var(--screen-height) * 0.18);
-        //             max-height: calc(var(--screen-height) * 0.12);
-        //             width: auto;
-        //             height: auto;
-        //         }
-        //     `;
-        //     document.head.appendChild(styleIconicFlags);
-        // } else {
-        //     const styleRegularFlags = document.createElement('style');
-        //     styleRegularFlags.textContent = `
-        //         .regular-layout .flag {
-        //             max-width: calc(var(--screen-height) * 0.14);
-        //             max-height: calc(var(--screen-height) * 0.1);
-        //             width: auto;
-        //             height: auto;
-        //         }
-        //     `;
-        //     document.head.appendChild(styleRegularFlags);
-        // }
-        
-        // Make sure the video in iconic layout plays no matter what.
-        // Additional robust video playing logic: if video element exists and is paused due to browser policies,
-        // we attempt to play it again on any user interaction? but requirement says "make the video play for iconic, no matter how"
-        // Since we used muted + autoplay, most modern browsers will autoplay muted videos. But to be absolutely sure,
-        // we also add a small script to force play after any user tap/click anywhere on screen for iconic.
+        // Ensure video plays in iconic layout
         if (isIconic) {
             const videoElement = document.querySelector('#bg-media-container video');
             if (videoElement) {
-                // attempt play on load and also on visibility changes
                 const forcePlay = () => {
                     if (videoElement.paused) {
                         videoElement.play().catch(e => console.log('playback retry:', e));
                     }
                 };
                 videoElement.addEventListener('loadeddata', forcePlay);
-                // also attempt after a tiny delay
                 setTimeout(forcePlay, 500);
-                // if video still not playing, try on any click/touch on the page (user gesture)
                 const playOnInteraction = () => {
                     if (videoElement && videoElement.paused) {
                         videoElement.play().then(() => {
-                            // once playing, remove listeners to avoid overhead
                             document.removeEventListener('click', playOnInteraction);
                             document.removeEventListener('touchstart', playOnInteraction);
                         }).catch(e => {});
@@ -550,25 +489,20 @@
                 };
                 document.addEventListener('click', playOnInteraction);
                 document.addEventListener('touchstart', playOnInteraction);
-                // additionally, if video is stuck because of invisible policy, we use a small hack: reload source? no needed.
-                // Also ensure video is not paused due to tab inactive? but not critical.
             }
         }
         
-        // Additional cleanup: Remove any blurred background styles from previous versions: we already set backdrop-filter: none explicitly
-        // Also ensure that no extra filter or blur is applied anywhere.
+        // Cleanup any blur styles
         const allBlurElements = document.querySelectorAll('.teams-container, #countdown-container, .target-date-wrapper span');
         allBlurElements.forEach(el => {
             el.style.backdropFilter = 'none';
             el.style.filter = 'none';
         });
         
-        // Ensure that for regular layout the content is stacked on the right side without any blur, but still visible.
-        // Also fix any overflow of vs text etc.
         const vsSpan = document.querySelector('.vs-container span');
         if (vsSpan) vsSpan.style.whiteSpace = 'nowrap';
         
-        // Fix for target date text, if on small regular screens adjust padding
+        // Small screen adjustments
         const adjustForSmall = () => {
             if (!isIconic && targetWidth < 500) {
                 const teamNames = document.querySelectorAll('.team-name');
@@ -583,7 +517,7 @@
         };
         adjustForSmall();
         
-        // ensure that background video always fills entire container and doesn't overflow
+        // Ensure background media always fills container
         const resizeObserver = new ResizeObserver(() => {
             const bgMedia = document.querySelector('.bg-media');
             if (bgMedia) {
@@ -599,11 +533,6 @@
             }
         });
         resizeObserver.observe(document.body);
-        
-        // final fail-safe: for iconic layout, if video fails to load at all, we create a canvas that simulates background but no blur
-        // but we also keep any fallback as we already have onerror on video.
-        // Also ensure that flags relation never loses aspect ratio: we enforce object-fit contain and remove fixed width/height attributes.
-        // The flag images will keep original proportion due to CSS.
     })();
 </script>
 </body>
