@@ -177,7 +177,7 @@
         /* ===================== ICONIC LAYOUT (width > 768) ===================== */
         .iconic-layout .header-stack {
             top: 40%;
-            left: 45%;
+            left: 50%;
             transform: translate(-50%, -50%);
             width: 80%;
             max-width: 1100px;
@@ -332,16 +332,33 @@
 
 <script>
     (function() {
-        // Simple rule: if viewport width > 768 pixels, use iconic layout
+        // ----- ROBUST LAYOUT DETECTION -----
+        // Use the largest available width value to ensure iconic triggers on big screens
+        const screenWidth = window.screen.width;
+        const innerWidth = window.innerWidth;
+        const availWidth = window.screen.availWidth;
+        const effectiveWidth = Math.max(screenWidth, innerWidth, availWidth);
+        
+        // Also check for specific known iconic resolutions
+        const screenHeight = window.screen.height;
+        const isKnownIconicRes = (screenWidth === 1920 && screenHeight === 1079) ||
+                                  (screenWidth === 2320 && screenHeight === 600) ||
+                                  (screenWidth >= 2000 && screenHeight <= 700);
+        
+        // Iconic if effective width > 768 OR it's a known iconic resolution
+        const isIconic = (effectiveWidth > 768) || isKnownIconicRes;
+        
+        // Debug output (can be removed later)
+        console.log(`[Layout] screen: ${screenWidth}x${screenHeight}, inner: ${innerWidth}, avail: ${availWidth}, effective: ${effectiveWidth}, isIconic: ${isIconic}`);
+        
+        // Apply viewport dimensions to CSS variables
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        
         const root = document.documentElement;
         root.style.setProperty('--screen-width', viewportWidth + 'px');
         root.style.setProperty('--screen-height', viewportHeight + 'px');
         
-        const isIconic = viewportWidth > 768;
-        
+        // Apply layout class
         if (isIconic) {
             document.body.classList.add('iconic-layout');
             document.body.classList.remove('regular-layout');
