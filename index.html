@@ -340,7 +340,7 @@
 
 <script>
     (function() {
-        // ----- FIX: Always use actual iframe viewport dimensions (no URL params) -----
+        // ----- Use actual viewport dimensions (no URL params) -----
         const targetWidth = window.innerWidth;
         const targetHeight = window.innerHeight;
         
@@ -348,15 +348,14 @@
         root.style.setProperty('--screen-width', targetWidth + 'px');
         root.style.setProperty('--screen-height', targetHeight + 'px');
         
-        // Determine iconic layout: specifically for 2320x600 or very wide aspect ratio > 3.0 and height <= 700
+        // Determine iconic layout: 
+        // - exact 1920x1079 (new iconic resolution)
+        // - ultra-wide (ratio >= 3.2 or width>=2000 & height<=700) for legacy
         const ratio = targetWidth / targetHeight;
         let isIconic = false;
         
-        // iconic size is 2320x600 as per spec, also detect ultra-wide banners
-        if ((targetWidth === 2320 && targetHeight === 600) || ratio >= 3.2 || (targetWidth >= 2000 && targetHeight <= 700)) {
+        if ((targetWidth === 1920 && targetHeight === 1079) || ratio >= 3.2 || (targetWidth >= 2000 && targetHeight <= 700)) {
             isIconic = true;
-        } else {
-            isIconic = false;
         }
         
         // Apply layout class to body
@@ -370,10 +369,10 @@
         
         // --- BACKGROUND HANDLING ---
         const bgContainer = document.getElementById('bg-media-container');
-        bgContainer.innerHTML = ''; // clear any previous
+        bgContainer.innerHTML = '';
         
         if (isIconic) {
-            // Create video element for iconic background
+            // Iconic: video background
             const video = document.createElement('video');
             video.className = 'bg-media';
             video.autoplay = true;
@@ -403,10 +402,10 @@
             video.addEventListener('canplaythrough', () => {
                 video.play().catch(e => console.log('Video autoplay prevented:', e));
             });
-            video.play().catch(e => console.log('Autoplay blocked, but will play on interaction or muted works'));
+            video.play().catch(e => console.log('Autoplay blocked, will play on interaction'));
             bgContainer.appendChild(video);
         } else {
-            // Regular layout: static image background
+            // Regular: static image
             const img = document.createElement('img');
             img.className = 'bg-media';
             img.src = './media/regular/display.png';
@@ -424,20 +423,17 @@
             bgContainer.appendChild(img);
         }
         
-        // ---- COUNTDOWN LOGIC (static init only) ----
+        // ---- COUNTDOWN LOGIC ----
         const targetDate = new Date('2026-06-11T14:00:00-05:00');
-        
         const targetDateEl = document.getElementById('target-date-text');
-        const formattedDate = targetDate.toLocaleDateString('es-MX', {
+        targetDateEl.innerText = targetDate.toLocaleDateString('es-MX', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
-        targetDateEl.innerText = formattedDate;
         
         const now = new Date();
-        let diffMs = targetDate - now;
-        let remainingDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        let remainingDays = Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24));
         if (remainingDays < 0) remainingDays = 0;
         
         const prefixSpan = document.getElementById('countdown-prefix');
@@ -465,7 +461,7 @@
             });
         });
         
-        // Ensure video plays in iconic layout
+        // Ensure iconic video plays
         if (isIconic) {
             const videoElement = document.querySelector('#bg-media-container video');
             if (videoElement) {
@@ -492,7 +488,7 @@
             }
         }
         
-        // Cleanup any blur styles
+        // Remove any blur
         const allBlurElements = document.querySelectorAll('.teams-container, #countdown-container, .target-date-wrapper span');
         allBlurElements.forEach(el => {
             el.style.backdropFilter = 'none';
@@ -517,7 +513,7 @@
         };
         adjustForSmall();
         
-        // Ensure background media always fills container
+        // Ensure background always fills
         const resizeObserver = new ResizeObserver(() => {
             const bgMedia = document.querySelector('.bg-media');
             if (bgMedia) {
